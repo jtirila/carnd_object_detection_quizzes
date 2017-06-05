@@ -25,10 +25,7 @@ def draw_boxes(img, bboxes, color=(0, 0, 255), thick=6):
 # then searches the image and returns the a list of bounding boxes
 # for matched templates
 def find_matches(img, template_list):
-    # Make a copy of the image to draw on
-    # Define an empty list to take bbox coords
     bbox_list = []
-
     for template in template_list:
         template = mpimg.imread(template)
         match_scores = cv2.matchTemplate(img, template, cv2.TM_SQDIFF_NORMED)
