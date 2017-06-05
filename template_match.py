@@ -28,16 +28,16 @@ def find_matches(img, template_list):
     # Make a copy of the image to draw on
     # Define an empty list to take bbox coords
     bbox_list = []
-    # Iterate through template list
-    # Read in templates one by one
-    # Use cv2.matchTemplate() to search the image
-    #     using whichever of the OpenCV search methods you prefer
-    # Use cv2.minMaxLoc() to extract the location of the best match
-    # Determine bounding box corners for the match
-    # Return the list of bounding boxes
+
+    for template in template_list:
+        template = mpimg.imread(template)
+        match_scores = cv2.matchTemplate(img, template, cv2.TM_SQDIFF_NORMED)
+        mindiffloc = cv2.minMaxLoc(match_scores)[2]
+        bbox_list.append((mindiffloc, tuple([sum(x) for x in zip(mindiffloc, (template.shape[1], template.shape[0]))])))
     return bbox_list
 
 
 bboxes = find_matches(image, templist)
 result = draw_boxes(image, bboxes)
 plt.imshow(result)
+plt.show()
