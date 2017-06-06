@@ -14,14 +14,15 @@ from sklearn.cross_validation import train_test_split
 
 
 def slide_window(img, x_start_stop=[None, None], y_start_stop=[None, None],
-                 xy_window=(64, 64), xy_overlap=(0.5, 0.5)):
+                 xy_window=(128, 128), xy_overlap=(0.5, 0.5)):
     # If x and/or y start/stop positions not defined, set to image size
     x_start_stop[0] = 0 if x_start_stop[0] is None else x_start_stop[0]
     x_start_stop[1] = img.shape[1] if x_start_stop[1] is None else x_start_stop[1]
     y_start_stop[0] = 0 if y_start_stop[0] is None else y_start_stop[0]
     y_start_stop[1] = img.shape[0] if y_start_stop[1] is None else y_start_stop[1]
+    overlap_coeffs = tuple([x[0] - x[1] for x in zip((1,)*2, xy_overlap)])
 
-    step_x, step_y = tuple(np.product(x) for x in zip(xy_window, xy_overlap))
+    step_x, step_y = (tuple(int(np.product(x)) for x in zip(xy_window, overlap_coeffs)))
     num_win_x = (x_start_stop[1] - x_start_stop[0] - xy_window[0]) // step_x + 1
     num_win_y = (y_start_stop[1] - y_start_stop[0] - xy_window[1]) // step_y + 1
 
@@ -250,16 +251,16 @@ notcars = notcars[0:sample_size]
 
 ### TODO: Tweak these parameters and see how the results change.
 color_space = 'RGB'  # Can be RGB, HSV, LUV, HLS, YUV, YCrCb
-orient = 9  # HOG orientations
+orient = 13  # HOG orientations
 pix_per_cell = 8  # HOG pixels per cell
 cell_per_block = 2  # HOG cells per block
-hog_channel = 0  # Can be 0, 1, 2, or "ALL"
+hog_channel = 'ALL'  # Can be 0, 1, 2, or "ALL"
 spatial_size = (16, 16)  # Spatial binning dimensions
 hist_bins = 16  # Number of histogram bins
-spatial_feat = True  # Spatial features on or off
+spatial_feat =  True # Spatial features on or off
 hist_feat = True  # Histogram features on or off
 hog_feat = True  # HOG features on or off
-y_start_stop = [None, None]  # Min and max in y to search in slide_window()
+y_start_stop = [500, None]  # Min and max in y to search in slide_window()
 
 car_features = extract_features(cars, color_space=color_space,
                                 spatial_size=spatial_size, hist_bins=hist_bins,
@@ -311,19 +312,22 @@ draw_image = np.copy(image)
 # image you are searching is a .jpg (scaled 0 to 255)
 # image = image.astype(np.float32)/255
 
-windows = slide_window(image, x_start_stop=[None, None], y_start_stop=y_start_stop,
-                       xy_window=(96, 96), xy_overlap=(0.5, 0.5))
+all = (((64, 64), (0.5, 0.5)), ((96, 96), (0.5, 0.5)), ((128, 128), (0.5, 0.5)), ((196, 196), (0.7, 0.7)))
+subset = (((196, 196), (0.7, 0.7)),)
+for size_overlap in subset:
+    windows = slide_window(image, x_start_stop=[None, None], y_start_stop=y_start_stop,
+                           xy_window=size_overlap[0], xy_overlap=size_overlap[1])
 
-hot_windows = search_windows(image, windows, svc, X_scaler, color_space=color_space,
-                             spatial_size=spatial_size, hist_bins=hist_bins,
-                             orient=orient, pix_per_cell=pix_per_cell,
-                             cell_per_block=cell_per_block,
-                             hog_channel=hog_channel, spatial_feat=spatial_feat,
-                             hist_feat=hist_feat, hog_feat=hog_feat)
+    hot_windows = search_windows(image, windows, svc, X_scaler, color_space=color_space,
+                                 spatial_size=spatial_size, hist_bins=hist_bins,
+                                 orient=orient, pix_per_cell=pix_per_cell,
+                                 cell_per_block=cell_per_block,
+                                 hog_channel=hog_channel, spatial_feat=spatial_feat,
+                                 hist_feat=hist_feat, hog_feat=hog_feat)
 
-window_img = draw_boxes(draw_image, hot_windows, color=(0, 0, 255), thick=6)
+    window_img = draw_boxes(draw_image, hot_windows, color=(0, 0, 255), thick=6)
 
-plt.imshow(window_img)
-plt.show()
+    plt.imshow(window_img)
+    plt.show()
 
 
