@@ -34,19 +34,27 @@ def extract_features(imgs, cspace='RGB', spatial_size=(32, 32),
     # Create a list to append feature vectors to
     features = []
     for img_filename in imgs:
-        img = mpimg.imread(img_filename)
-        bin_fetures = bin_spatial(img, spatial_size)
-        color_hist_features = color_hist(img, hist_bins, hist_range)
+        img_features = []
+        img_orig = mpimg.imread(img_filename)
+        assert cspace in ("RGB", "HLS", "HSV", "LUV", "GRAY")
+        if not cspace == "RGB":
+            colorspace_val = getattr(cv2, "COLOR_RGB2{}".format(cspace))
+            img = cv2.cvtColor(img_orig, colorspace_val)
+        else:
+            img = img_orig
+        img_features.append(bin_spatial(img, spatial_size))
+        img_features.append(color_hist(img, hist_bins, hist_range))
+        img_features_flat = np.concatenate(img_features)
 
-        # TODO: WIP
+        features.append(img_features_flat)
 
-    # Iterate through the list of images
-    # Read in each one by one
-    # apply color conversion if other than 'RGB'
-    # Apply bin_spatial() to get spatial color features
-    # Apply color_hist() to get color histogram features
-    # Append the new feature vector to the features list
-    # Return list of feature vectors
+        # Iterate through the list of images
+        # Read in each one by one
+        # apply color conversion if other than 'RGB'
+        # Apply bin_spatial() to get spatial color features
+        # Apply color_hist() to get color histogram features
+        # Append the new feature vector to the features list
+        # Return list of feature vectors
     return features
 
 
@@ -84,5 +92,6 @@ if len(car_features) > 0:
     plt.plot(scaled_X[car_ind])
     plt.title('Normalized Features')
     fig.tight_layout()
+    plt.show()
 else:
     print('Your function only returns empty feature vectors...')
