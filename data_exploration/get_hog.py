@@ -6,7 +6,7 @@ import glob
 from skimage.feature import hog
 
 # Read in our vehicles and non-vehicles
-images = glob.glob('*.jpeg')
+images = glob.glob('**/**/*.jpeg')
 cars = []
 notcars = []
 
@@ -19,15 +19,11 @@ for image in images:
 
 # Define a function to return HOG features and visualization
 def get_hog_features(img, orient, pix_per_cell, cell_per_block, vis=False, feature_vec=True):
-    if vis == True:
-        # Use skimage.hog() to get both features and a visualization
-        features = []  # Remove this line
-        hog_image = img  # Remove this line
-        return features, hog_image
-    else:
-        # Use skimage.hog() to get features only
-        features = []  # Remove this line
-        return features
+    # TODO: in the proposed solution, feature_vector is set to False when vis == True. Not sure why this is the case.
+    # Also, the return values are manually handled in the solution, even though I guess we can just implicitly return
+    # either the single value or the two-tuple the hog function returns.
+    return hog(img, orient, (pix_per_cell, ) * 2 , (cell_per_block, ) * 2, visualise=vis, feature_vector=feature_vec)
+
 
 
 # Generate a random index to look at a car image
@@ -52,3 +48,4 @@ plt.title('Example Car Image')
 plt.subplot(122)
 plt.imshow(hog_image, cmap='gray')
 plt.title('HOG Visualization')
+plt.show()
